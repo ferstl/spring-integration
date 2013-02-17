@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:task="http://www.springframework.org/schema/task"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task.xsd">
+
+  <bean id="simpleCorrelation" class="org.springframework.integration.aggregator.AggregatorReaperConcurrencyTest.SimpleCorrelationStrategy" />
+  <bean id="messageCountRelease" class="org.springframework.integration.aggregator.MessageCountReleaseStrategy">
+    <constructor-arg value="100" />
+  </bean>
+  <bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore">
+    <property name="timeoutOnIdle" value="true" />
+  </bean>
+  <bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
+    <property name="messageGroupStore" ref="messageStore" />
+    <property name="timeout" value="10" />
+    <property name="expireOnDestroy" value="true" />
+  </bean>
+  <bean id="outputQueue" class="java.util.concurrent.LinkedBlockingQueue" />
+  <bean id="discardQueue" class="java.util.concurrent.LinkedBlockingQueue" />
+  
+  <task:scheduler id="scheduler" pool-size="1" />
+  <task:scheduled-tasks scheduler="scheduler">
+    <task:scheduled ref="reaper" method="run" fixed-rate="10" />
+  </task:scheduled-tasks>
+  
+
+  <int:channel id="inputChannel" />
+  <int:channel id="outputChannel">
+    <int:queue ref="outputQueue"/>
+  </int:channel>
+  <int:channel id="discardChannel">
+    <int:queue ref="discardQueue"/>
+  </int:channel>
+  <int:aggregator
+     id="aggregator"
+     input-channel="inputChannel"
+     output-channel="outputChannel"
+     discard-channel="discardChannel"
+     message-store="messageStore"
+     correlation-strategy="simpleCorrelation"
+     release-strategy="messageCountRelease"
+     send-partial-result-on-expiry="true"
+     send-timeout="10"
+     expire-groups-upon-completion="true" />
+
+</beans>
