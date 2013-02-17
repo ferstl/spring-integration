@@ -272,10 +272,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				 * its lock. We have to re-fetch the group for this. A possible
 				 * future improvement would be to add MessageGroupStore.getLastModified(groupId).
 				 */
-				MessageGroup messageGroupNow = this.messageStore.getMessageGroup(
-						group.getGroupId());
+				MessageGroup messageGroupNow = this.messageStore.getMessageGroup(group.getGroupId());
+				int versionNow = messageGroupNow.getVersion();
 				long lastModifiedNow = messageGroupNow.getLastModified();
-				if (group.getLastModified() == lastModifiedNow) {
+				if (group.getVersion() == versionNow) {
 					if (group.size() > 0) {
 						if (releaseStrategy.canRelease(group)) {
 							this.completeGroup(correlationKey, group);

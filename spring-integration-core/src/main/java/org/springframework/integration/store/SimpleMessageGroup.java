@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
 
@@ -34,8 +35,10 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object groupId;
 
-	public final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
+	private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
 
+	private final AtomicInteger version = new AtomicInteger();
+	
 	private volatile int lastReleasedMessageSequence;
 
 	private final long timestamp;
@@ -70,6 +73,10 @@ public class SimpleMessageGroup implements MessageGroup {
 	public long getTimestamp() {
 		return timestamp;
 	}
+	
+	public int getVersion() {
+		return this.version.intValue();
+	}
 
 	public void setLastModified(long lastModified){
 		this.lastModified = lastModified;
@@ -88,7 +95,10 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public void remove(Message<?> message) {
-		messages.remove(message);
+		boolean result = messages.remove(message);
+		if (result) {
+			this.version.incrementAndGet();
+		}
 	}
 
 	public int getLastReleasedMessageSequenceNumber() {
@@ -96,7 +106,11 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	private boolean addMessage(Message<?> message) {
-		return this.messages.offer(message);
+		boolean result = this.messages.offer(message);
+		if (result) {
+			this.version.incrementAndGet();
+		}
+		return result;
 	}
 
 	public Collection<Message<?>> getMessages() {
@@ -137,6 +151,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public void clear(){
 		this.messages.clear();
+		this.version.incrementAndGet();
 	}
 
 	@Override

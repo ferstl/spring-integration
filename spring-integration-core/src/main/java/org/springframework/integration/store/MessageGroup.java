@@ -85,5 +85,7 @@ public interface MessageGroup {
 	 * @return the timestamp (milliseconds since epoch) associated with the time this group was last updated
 	 */
 	long getLastModified();
+	
+	int getVersion();
 
 }
