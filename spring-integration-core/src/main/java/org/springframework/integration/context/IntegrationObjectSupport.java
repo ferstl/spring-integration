@@ -24,6 +24,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -59,6 +60,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private volatile ConversionService conversionService;
 
+	
+	public IntegrationObjectSupport() {
+		this.conversionService = new DefaultConversionService();
+	}
 
 	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
@@ -128,19 +133,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	protected final ConversionService getConversionService() {
-		if (this.conversionService == null && this.beanFactory != null) {
-			synchronized (this) {
-				if (this.conversionService == null) {
-					this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
-				}
-			}
-			if (this.conversionService == null && this.logger.isDebugEnabled()) {
-				this.logger.debug("Unable to attempt conversion of Message payload types. Component '" +
-						this.getComponentName() + "' has no explicit ConversionService reference, " +
-						"and there is no 'integrationConversionService' bean within the context.");
-			}
+		ConversionService conversionService = null;
+		if (this.beanFactory != null) {
+			conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
 		}
-		return this.conversionService;
+		return (conversionService != null) ? conversionService : this.conversionService;
 	}
 
 	protected void setConversionService(ConversionService conversionService) {

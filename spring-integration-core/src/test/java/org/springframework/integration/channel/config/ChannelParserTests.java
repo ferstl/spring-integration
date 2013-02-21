@@ -33,6 +33,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -146,7 +147,15 @@ public class ChannelParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
 				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
-		channel.send(new GenericMessage<String>("incorrect type"));
+		channel.send(new GenericMessage<Boolean>(false));
+	}
+	
+	@Test(expected = ConversionFailedException.class)
+	public void testDatatypeChannelWithInconvertibleType() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
+				.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
+		channel.send(new GenericMessage<String>("not a number"));
 	}
 
 	@Test
@@ -167,7 +176,7 @@ public class ChannelParserTests {
 		assertTrue(channel.send(new GenericMessage<String>("accepted type")));
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test
 	public void testMultipleDatatypeChannelWithIncorrectType() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
 				.getClass());
@@ -249,10 +258,10 @@ public class ChannelParserTests {
 		assertEquals(3, channel.receive(0).getPayload());
 		boolean threwException = false;
 		try {
-			channel.send(new GenericMessage<String>("wrong type"));
+			channel.send(new GenericMessage<Boolean>(false));
 		}
 		catch (MessageDeliveryException e) {
-			assertEquals("wrong type", e.getFailedMessage().getPayload());
+			assertEquals(false, e.getFailedMessage().getPayload());
 			threwException = true;
 		}
 		assertTrue(threwException);

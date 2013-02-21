@@ -19,7 +19,6 @@ package org.springframework.integration.router;
 import java.util.Collection;
 
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -102,14 +101,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		return this.messagingTemplate;
 	}
 
+	/**
+	 * @deprecated Use {@link #getConversionService()}. 
+	 */
+	@Deprecated
 	protected ConversionService getRequiredConversionService() {
-		if (this.getConversionService() == null) {
-			synchronized (this) {
-				if (this.getConversionService() == null) {
-					this.setConversionService(new DefaultConversionService());
-				}
-			}
-		}
 		return this.getConversionService();
 	}
 

@@ -17,7 +17,6 @@
 package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
@@ -38,6 +37,8 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
@@ -49,12 +50,6 @@ public class DatatypeChannelTests {
 	public void supportedType() {
 		MessageChannel channel = createChannel(String.class);
 		assertTrue(channel.send(new GenericMessage<String>("test")));
-	}
-
-	@Test(expected = MessageDeliveryException.class)
-	public void unsupportedTypeAndNoConversionService() {
-		MessageChannel channel = createChannel(Integer.class);
-		channel.send(new GenericMessage<String>("123"));
 	}
 
 	@Test
@@ -137,12 +132,12 @@ public class DatatypeChannelTests {
 
 	@Test
 	public void multipleTypes() {
-		MessageChannel channel = createChannel(String.class, Integer.class);
-		assertTrue(channel.send(new GenericMessage<String>("test1")));
+		MessageChannel channel = createChannel(Date.class, Integer.class);
+		assertTrue(channel.send(new GenericMessage<Date>(new Date())));
 		assertTrue(channel.send(new GenericMessage<Integer>(2)));
 		Exception exception = null;
 		try {
-			channel.send(new GenericMessage<Date>(new Date()));
+			channel.send(new GenericMessage<Boolean>(false));
 		}
 		catch (MessageDeliveryException e) {
 			exception = e;

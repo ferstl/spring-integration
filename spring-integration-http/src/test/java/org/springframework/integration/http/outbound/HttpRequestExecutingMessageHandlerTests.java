@@ -69,6 +69,7 @@ import org.springframework.integration.http.converter.SerializingHttpMessageConv
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -720,7 +721,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			fail("Unexpected exception during initialization " + e.getMessage());
 		}
-		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
+		assertSame(mockConversionService, ReflectionTestUtils.invokeGetterMethod(handler, "conversionService"));
 	}
 
 	@Test
@@ -744,7 +745,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		handler.setBeanFactory(bf);
 		handler.afterPropertiesSet();
 		assertEquals(2, converterCount.get());
-		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
+		assertSame(mockConversionService, ReflectionTestUtils.invokeGetterMethod(handler, "conversionService"));
 	}
 
 	@Test
